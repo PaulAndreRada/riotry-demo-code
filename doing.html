@@ -1,0 +1,745 @@
+ <!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,
+                                                chrome=1">
+    <meta name="viewport" content="user-scalable = no,
+                                   width = device-width,
+                                   initial-scale = 1,
+                                   maximum-scale = 1">
+
+    <title>{{ doing_title }} by {{ creator_full_name }}</title>
+    <link rel="stylesheet" href="{{ STATIC_URL }}stylesheets/doing.css">
+    <script type="text/javascript" src="{{STATIC_URL}}javascripts/vendor/modernizr-2.6.2.min.js"></script>
+  </head>
+
+  <body>
+    
+    <div class="page-container">
+
+      <div class="doing-content-container">
+	<!-- header Target -->
+	<div class="show-doing hide-doing"
+	     id="doingInfoTemplateTarget"></div>
+
+	<!-- header template -->
+	<script type="text/template"
+		id="doingInfoTemplateLocation">
+
+	  <div class="doing-header">
+	    <div class="back-button-container">
+	      <div class="back-button"
+		   aria-hidden="true"
+		   data-icon="&#x77;"
+		   onclick="location.href='{{back_button_addr}}'">
+	      </div> <!--back-button-->
+	    </div> <!--back-button-container-->
+
+	    <div class="doing-title-container"
+		 id="doingPullDownTrigger">
+	      <div class="doing-title">
+		<%= data.doing_title %>
+	      </div> <!--doing-title-->
+	    </div> <!--doing-title-container-->
+
+            <a class="creator-thumb"
+		 href="{{url_to_creator_profile}}">
+              <img src="{{MEDIA_URL}}<%= data.creator_mini_thumbnail %>"/>
+              <div class="creator-thumb-overlay"></div>
+            </a> <!--creator-thumb-->
+	  </div> <!--doing-header-->
+
+	  <div class="doing-info-container">
+	    
+	    {% include "_decorateButton.html" %}
+	    
+	    {% if doing_description|length > 0 %}
+	    <div class="doing-description-container"
+		 style="padding: 15px 0 20px;">
+	      <%= data.doing_description %>
+	    </div> <!--doing-description-container-->
+	    {% else %}	    
+	    <div class="doing-description-container"
+		 style="padding: 0;">
+	      <%= data.doing_description %>
+	    </div> <!--doing-description-container-->
+	    {% endif %}
+
+	    {% if other_doings|length > 0 %}
+	    <div class="other-links-container">
+	      
+	      <div class="other-links-container-title">
+		<span>More by <%= data.creator_first_name %></span>
+	      </div> <!--other-links-container-title-->
+	      
+	      {% for d in other_doings %}
+              <div class="other-doing"
+		   onclick="location.href='{{d.url_to_doing}}';">
+		<span>{{d.title}}</span>
+              </div> <!--other-doing-->
+	      {% endfor %}
+	      
+	    </div> <!--other-links-container-->
+	    {% endif %}
+	  </div> <!--doing-info-container-->
+	  
+	
+      </script> <!--doingInfoEditTemplateLocation-->
+      <!-- header edit template -->
+      <script type="text/template" id="doingInfoEditTemplateLocation">
+	<div class="edit-doing-container">
+	  <div class="doing-header">
+
+	    <div class="doing-title-input-container">
+	      <div class="doing-title-input">
+		<input type="text" 
+		       value="<%= data.doing_title %>"
+		       id="doingNameInput"/>
+	      </div> <!--doing-title-input-->
+	    </div> <!--doing-title-input-container--->
+
+            <div class="creator-thumb">
+              <img src="{{MEDIA_URL}}<%= data.creator_mini_thumbnail %>"/>
+              <div class="creator-thumb-overlay"></div>
+            </div> <!--creator-thumb-->
+	  </div> <!--doing-header-->
+
+	  <div class="doing-description-textarea-container">
+	    <textarea class="doing-description-textarea"
+		      id="doingDescTextarea"><%= data.doing_description %></textarea> <!--doing-description-textarea-->
+	  </div>
+
+	  <div class="doing-info-edit-button-container">
+	  <div class="doing-delete-button-container">
+	    <div class="doing-delete-button"
+		 id="doingDeleteModalTrigger">
+	      <u>delete doing</u>
+	    </div> <!--doing-delete-button-->
+	  </div> <!-- doing-delete-button-container -->
+
+	  <div class="doing-info-cancel-container" 
+	       id="cancelDoingEdit"> 
+	    <div class="doing-info-cancel">
+	      cancel
+	      </div>
+	    </div> <!-- doing-info-cancel-container -->
+	  
+	  <div class="doing-info-submit-container" 
+	       id="saveDoingEdit"> 
+	    <div class="doing-info-submit" >
+	      save
+	    </div> 
+	  </div> <!-- doing-info-submit-container -->
+	  </div> <!--doing-info-edit-button-container-->
+	</div> <!--edit-doing-container"-->
+      </script> <!--doingInfoEditTemplateLocation-->
+
+
+
+      <!-- sections target -->
+      <div class="show-sections" id="sectionsTemplateTarget"></div>
+
+      <!-- sections Template -->
+      <script type="text/template"
+	      id="sectionsTemplateLocation">
+	<div class="page-content-container">
+	  <div class="section-container">
+	    
+		<div class="section-nav-dots-container animate" 
+		     id="navMarkerContainer">
+		  <% for( var i=0; i < data.sections.length; i++ ){ %>
+		  <% 
+		     var focus = "";
+		     if ( $.contextVar.section_in_focus === i ){ 
+		     focus = "focused-dot";
+		     };
+		     %> 
+		  <div class="nav-dot <%= focus %>"
+		       data-nav-marker="<%= i %>">
+		  </div> <!--nav-dots-->
+		  <% } %> 
+		</div> <!--section-nav-dots-container-->
+		
+	    <div class="overlay-for-inset"></div>
+
+	    <!-- carousel -->
+	    <div class="carousel" id="sectionCarousel">
+	      <ul class="carousel-list">
+		
+		<% for( var sec=0; sec < data.sections.length; sec++ ){ %>
+		<li class="carousel-pane" 
+		    data-carousel-pane="<%= sec %>"
+		    data-section="<%= sec %>" >
+		  <div class="section-header" >
+		    <div class="section-name-container">
+		      <div class="section-name-text">
+			<span> <%= data.sections[sec].section_name %></span>
+		      </div> <!--section-name-text-->
+		    </div> <!--section-name-container-->
+		  </div> <!--section-header-->
+
+		  <div class="section-items-container"
+		       data-items-container>
+		    <% var sectionItems = data.sections[sec].section_items; %>
+		    <% for( var itm=0; itm < sectionItems.length; itm++ ) { %>
+
+		    <!-- item --->
+		    <a href="/MediaItem<%= data.sections[sec].section_items[itm].item_href %>"
+		       class="item-thumb-container"
+		       data-item-id="<%= sectionItems[itm].item_id %>">
+		      <img class="item-thumb"
+			   src="{{MEDIA_URL}}<%= sectionItems[itm].item_thumbnail %>">
+		      <div class="item-thumb-overlay"></div>
+
+		      <div class="delete-icon-container hidden"
+			   data-delete-icon-container>
+			<div class="delete-icon">
+			</div> <!--delete-icon-->
+		      </div> <!--delete-icon-container-->
+
+		      <div class="cover-icon-container hidden"
+			   data-cover-icon-container>
+			<div class="cover-icon hidden"
+			     data-cover-icon="inactive"></div>
+		      </div> <!--cover-icon-container hidden-->
+
+		      <div class="sort-icon-container hidden"
+			   data-sort-icon>
+			<div class="sort-icon"
+			     aria-hidden="true"
+			     data-icon="&#x66;">
+			</div> <!--sort-icon-->
+			<div class="sort-icon-white"
+			     aria-hidden="true"
+			     data-icon="&#x66;">
+			</div> <!--sort-icon-->
+		      </div><!--sort-icon-container-->
+
+		    </a> <!--item-thumb-container-->
+
+		    <% } %><!--items forloop-->
+		  </div> <!--section-items-container-->
+
+		</li> <!--carousel-pane-->
+		<% } %> <!--sections for loop-->
+
+	      </ul> <!--carousel-list-->
+	    </div> <!--carousel-->
+	  </div> <!--section-container-->
+	</div> <!--page-content-container-->
+      </script><!--sections template-->
+
+      </div> <!--doing-content-container-->
+    </div> <!--page-container-->
+
+    <!----------------------------------->
+    <!-- Buttons to Trigger Edit Modes -->
+    <!----------------------------------->
+
+    <div class="trigger-doing-edit-mode hidden"
+	 id="editInfoModeOn">
+      <div class="trigger-icon"
+	   aria-hidden="true"
+	   data-icon="&#x25;">
+      </div> <!--trigger-icon-->
+    </div> <!--trigger-doing-edit-mode-->
+
+    <div  class="trigger-section-edit-mode"
+	 id="editBarTrigger">
+      <div class="trigger-icon">
+	edit
+      </div> <!--trigger-icon-->
+    </div> <!--trigger-section-edit-mode-->
+
+
+
+
+    <!-- Edit Footer -->
+    <footer class="hidden" 
+	    id="sectionsEditBar">
+      <div class="main-edit-footer">
+	<div class="page-content-container">
+
+	  <div class="add-icon-container edit-icon-button"
+	       id="addModeTrigger">
+	    <div class="add-icon edit-icon"
+		 aria-hidden="true"
+		 data-icon="&#x5a;">
+	    </div> <!--add-icon-->
+	  </div> <!--add-icon-container-->
+
+	  <div class="sort-icon-container edit-icon-button"
+	       id="sortModeTrigger">
+	    <div class="sort-icon edit-icon"
+		 aria-hidden="true"
+		 data-icon="&#x63;">
+	    </div> <!--sort-icon-->
+	  </div> <!--sort-icon-container-->
+
+	  <div class="cover-icon-container edit-icon-button"
+	       id="coverModeTrigger">
+	    <div class="cover-icon edit-icon"
+		 aria-hidden="true"
+		 data-icon="&#x69;">
+	    </div> <!--cover-icon-->
+	  </div> <!--cover-icon-container-->
+
+	 
+	  <div class="trash-icon-container edit-icon-button"
+	       id="deleteModeButton">
+	    <div class="trash-icon edit-icon"
+		 aria-hidden="true"
+		 data-icon="&#x6d;">
+	    </div> <!--trash-icon-->
+	  </div> <!--trash-icon-container-->
+	  
+	  
+	  <div class="cancel-edit-icon-container edit-icon-button"
+	       id="cancelEditMode">
+	    <div class="cancel-edit-icon edit-icon"
+		 aria-hidden="true"
+		 data-icon="&#x58">
+	    </div> <!--collaborators-icon-->
+	  </div> <!--collaborators-icon-container-->
+
+	</div> <!--page-content-container-->
+      </div> <!--main-edit-footer-->
+
+
+      <!-- Hidden when not in delete mode -->
+      <div class="delete-mode-footer hidden"
+           id="deleteModeFooter">
+	<div class="page-content-container">
+          <div class="cancel-delete-button"
+	       id="cancelItemDelete">
+            <div class="cancel-label">
+              <span>cancel</span>
+            </div> <!--cancel-label-->
+          </div> <!--cancel-delete-button-->
+
+          <div class="button-delete-selected"
+               id="deleteItemsSubmit">
+            <div class="delete-selected-label">
+              <span>
+		delete
+		<span class="amount-to-delete"
+                      data-delete-count>
+                  (0)
+		</span>
+              </span>
+            </div> <!--delete-selected-label-->
+          </div> <!--button-delete-selected-->
+	</div> <!--page-content-container-->
+      </div> <!--delete-mode-footer-->
+
+      <!-- Hidden when not in change-cover mode -->
+      <div class="cover-mode-footer hidden"
+	   id="coverModeFooter">
+	<div class="page-content-container">
+	  
+	  <div class="description-label">
+	    <span class="cover-change-instructions">
+	      choose cover from any section
+	    </span> <!--cover-change-instructions-->
+
+	    <div class="bg-option-container">
+	      choose a cover for your doing 
+	    </div> <!--bg-option-container-->
+	  </div> <!--description-label-->
+
+	  <div class="done-button"
+	       id="coverModeOffButton">
+	    <div class="button-label">
+	      done
+	    </div> <!--done-button-label-->
+	  </div> <!--done-button-->
+	</div> <!--page-content-container-->
+      </div> <!--cover-mode-footer-->
+
+      <!-- Hidden when not in sort mode -->
+      <div class="sort-mode-footer hidden"
+           id="sortModeFooter">
+        <div class="page-content-container">
+
+          <div class="cancel-sort-button"
+               id="cancelSort">
+            <div class="cancel-label">
+              <span>cancel</span>
+            </div> <!--cancel-label-->
+          </div> <!--cancel-sort-button-->
+
+          <div class="sort-save-button"
+               id="sortSave">
+            <div class="sort-save-label">
+              <span>
+                save
+              </span>
+            </div> <!--sort-label-->
+          </div> <!--save-sort-button-->
+        </div> <!--page-content-container-->
+      </div> <!--sort-mode-footer-->
+
+    </footer>
+
+    <!-- Hidden delete doing modal -->
+    <div class="delete-doing-modal hidden"
+	 id="doingDeleteModal">
+      
+      <a class="close-modal-icon close-reveal-modal">
+	&#215;
+      </a> <!--modal_closing_icon-->
+
+      <div class="delete-modal-message">
+	<span class="delete-msg-1">
+	  are you absolutely <span class="ital">sure</span> that<br>you want to delete this doing?<br><br>
+	</span> <!--delete-msg-1-->
+	<span class="delete-msg-2">
+	  its ranking and content will<br>all be deleted as well
+	</span> <!--delete-msg-2-->
+      </div> <!--delete-modal-message-->
+      
+      <form class="semi-hidden-delete-form"
+	    action="/delete_doing/"
+	    method="post"> {% csrf_token %}
+
+        <input type="text"
+	       name="doing_id"
+	       id="doingIdCarrier"
+	       style="display : none;">
+
+        <button class="delete-doing-button"
+		type="submit">
+	  <div class="button-label">
+	    <span>delete doing</span>
+	  </div>
+	</button>
+
+        <a href="#" 
+	   class="cancel-delete-doing-link close-reveal-modal"> 
+	  cancel
+	</a> <!--cancel-delete-doing-link-->
+
+      </form> <!--semi-hidden-delete-for-->
+    </div><!-- delete-doing-modal -->
+
+
+    <!-- Hidden add items modal -->
+    <div class="add-items-modal"
+	 id="addItemsModal"
+	 style="display: none">
+      
+      <div class="page-content-container">
+	<!-- upload items buttton --> 
+	<div class="upload-icon-container"
+	     id="uploadModalTrigger">
+	  <span>upload content directly<span>
+	      <div class="upload-icon"
+		   aria-hidden="true"
+		   data-icon="&#x6f;">
+	      </div> <!--upload-icon-->
+	</div> <!--upload-icon-container-->
+	
+	<!-- Hidden Dropdown for Upload -->
+	<div class="upload-dropdown-container animate hidden" 
+	     id="uploadModalContainer">
+	  <div class="upload-dropdown">
+	    <div class="dropdown-band">
+	      <div class="upload-type-icon-container"
+		   aria-hidden="true"
+		   data-icon="&#x69;">
+	      </div> <!--upload-type-icon-container-->
+	      <div class="drop-link-wrap" 
+		   id="imgUploadTrigger">
+		<span>upload photos</span>
+	      </div> <!--drop-link-wrap-->
+	    </div> <!--dropdown-band-->
+	    <div class="dropdown-band-divider">
+	    </div> <!--dropdown-band-divider-->
+	    
+	    <div class="dropdown-band">
+	      <div class="upload-type-icon-container"
+		   aria-hidden="true"
+		   data-icon="&#x73;">
+	      </div> <!--upload-type-icon-container-->
+	      <div class="drop-link-wrap" 
+		   id="vidUploadTrigger">
+		<span>upload video</span>
+	      </div> <!--drop-link-wrap-->
+	    </div> <!--dropdown-band-->
+	    <div class="dropdown-band-divider">
+	    </div> <!--dropdown-band-divider-->
+	    
+	    <div class="dropdown-band">
+	      <div class="upload-type-icon-container"
+		   aria-hidden="true"
+		   data-icon="&#x67;">
+	      </div> <!--upload-type-icon-container-->
+	      <div class="drop-link-wrap" 
+		   id="composeTextButton"> <!--USE THIS AS BUTTON-->
+		<span>compose an article</span>
+	      </div> <!--drop-link-wrap-->
+	    </div> <!--dropdown-band-->
+	    <div class="dropdown-band-divider">
+	    </div> <!--dropdown-band-divider-->
+	    
+	  </div> <!--upload-dropdown-->
+	</div> <!--upload-dropdown-container-->
+      </div> <!--page-content-container-->
+      
+      
+      <!-- invisible media inputs -->
+      <!-- triggered by upload dropdown -->
+      <!-- image upload -->
+      <form method="post" 
+	    style="display:none;" 
+	    enctype="multipart/form-data"> 
+	{% csrf_token %}
+	<input id="imgUploadInput" 
+	       multiple="multiple" 
+	       name="img" 
+	       type="file">
+	<input type="submit" 
+	       style="display:none" 
+	       name="img_upload_submitted" 
+	       data-auto-submit="modalImageSubmit">
+      </form>
+      
+      <!-- video upload -->
+      <form method="post" 
+	    style="display:none;" 
+	    enctype="multipart/form-data">
+	{% csrf_token %}
+	<input id="vidUploadInput" 
+	       name="vid" 
+	       type="file">
+	<input type="submit"
+	       style="display:none;" 
+	       name="vid_upload_submitted" 
+	       data-auto-submit="modalVideoSubmit">
+      </form>
+      
+      <div class="library-template-target"
+	   id="addItemsTemplateTarget"></div>
+      
+      <script type="template"
+	      id="addItemsTemplateLocation">
+	<div class="page-content-container">
+	  
+          <% for(var grp = 0; grp < data.library_contents.length; grp++ ){ %>
+             <div class="content-block-container">
+               <div class="content-block-name-container">
+		 <div class="content-block-name">
+                   <%= data.library_contents[grp].group_name %>
+		 </div> <!--content-block-name-->
+               </div> <!--content-block-name-container-->
+	       
+            <div class="row-of-thumbs">
+
+              <% for(var itm=0; itm < data.library_contents[grp].items.length; itm++) { %>
+
+	      <!-- define the member booleans -->
+	      <%
+		 var isMember1 = data.library_contents[grp].items[itm].section1_membership,
+		 isMember2 = data.library_contents[grp].items[itm].section2_membership,
+		 isMember3 = data.library_contents[grp].items[itm].section3_membership
+
+		 %>
+
+	      <!-- item container -->
+              <div class="media-thumb-container"
+                   data-item-id=<%= data.library_contents[grp].items[itm].item_id %>
+		   data-member-of-section-0="<%= isMember1 %>"
+		   data-member-of-section-1="<%= isMember2 %>"
+		   data-member-of-section-2="<%= isMember3 %>">
+
+		<!-- item -->
+                <img class="media-thumb"
+		     src="{{MEDIA_URL}}<%= data.library_contents[grp].items[itm].item_thumbnail %>"/>
+                <div class="media-thumb-overlay"></div> <!--for inset shadow-->
+
+
+		<!-- section membership markers -->
+		<!-- if true render without not-member class -->
+		<!-- else render with not-member class -->
+		<div class="section-markers-container">
+
+		  <% if ( isMember1 === true ){ %>
+		  <div class="section-one-marker"
+		       data-marker-sec=0>
+		    <span></span>
+		  </div>
+		  <% } else { %>
+		  <div class="section-one-marker section-one-on-queue not-member"
+                       data-marker-sec=0>
+		    <span></span>
+		  </div>
+		  <% } %>
+
+
+		  <% if ( isMember2 === true ){%>
+		  <div class="section-two-marker"
+		       data-marker-sec=1>
+		    <span></span>
+		  </div>
+		  <% } else { %>
+		  <div class="section-two-marker section-two-on-queue  not-member"
+                       data-marker-sec=1>
+		  <span></span>
+		  </div>
+		  <% } %>
+
+
+		  <% if ( isMember3 === true ){%>
+		  <div class="section-three-marker"
+		       data-marker-sec=2>
+		    <span></span>
+		  </div>
+		  <% } else { %>
+		  <div class="section-three-marker section-three-on-queue not-member"
+                       data-marker-sec=2>
+		    <span></span>
+		  </div>
+		  <% } %>
+
+		</div>
+
+              </div> <!--media-thumb-container-->
+              <% } %> <!--for item in block-->
+            </div> <!--row-of-thumbs-->
+
+          </div> <!--content-block-container-->
+          <% } %> <!--for block in library_contents-->
+
+
+	  <div class="add-item-button-container"
+	       data-end-controls="addItems">
+	    <div class="cancel-add-button"
+		 data-control-type="cancel">cancel</div>
+	    <div class="submit-add-button"
+		 data-control-type="submit">submit</div>
+	  </div> <!-- add-item-button-container-->
+
+	</div> <!--page-content-container-->
+      </script> <!--addItemsTemplateLocation-->
+      </div> <!--add-items-modal-->
+    
+    <div class="page-container"> 
+      
+      <!-- import the html for ajax related visuals                               
+	   located : systemwide/templates -->
+      {% include "_ajaxActions.html" %}
+      
+      {% include "_decoratePrompt.html" %}
+
+      {% include "_reaction_displays.html" %}    
+    </div>
+
+    
+
+<!-- @jquery -->
+   <script type="text/javascript"
+	   src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js">
+   </script>
+   <script>
+     window.jQuery
+     ||
+     document.write('<script src="../static/javascripts/vendor/jquery-1.8.3.min.js"><\/script>');
+     </script>
+
+<!-- @underscore -->
+     <script type="text/javascript"
+	     src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js">
+     </script>
+     <script>
+       window._
+       ||
+       document.write('<script src="../static/javascripts/vendor/underscore-1.4.4.js"><\/script>');
+       </script>
+
+        <script type="text/javascript">
+          //Django Sec
+          $(function($){
+          $(document).ajaxSend(function(event, xhr, settings) {
+          function getCookie(name) {
+          var cookieValue = null;
+          if (document.cookie && document.cookie != '') {
+          var cookies = document.cookie.split(';');
+          for (var i = 0; i < cookies.length; i++) {
+                              var cookie = jQuery.trim(cookies[i]);
+                              // Does this cookie string begin with the name we want?
+                              if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                              break;
+                              }
+                              }
+                              }
+                              return cookieValue;
+                              }
+                              function sameOrigin(url) {
+                              // url could be relative or scheme relative or absolute
+                              var host = document.location.host; // host + port
+                              var protocol = document.location.protocol;
+                              var sr_origin = '//' + host;
+                              var origin = protocol + sr_origin;
+                              // Allow absolute or scheme relative URLs to same origin
+                    return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+                        (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+                        // or any other URL that isn't scheme relative or absolute i.e relative.
+                        !(/^(\/\/|http:|https:).*/.test(url));
+                }
+                function safeMethod(method) {
+                    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                }
+
+                if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                                                                         }
+                                                                         });
+                                                                         });
+
+                                                                         </script>
+	<script type="text/javascript"
+		src="{{ STATIC_URL }}javascripts/doings_plugins-ck.js"></script>
+
+        <script text="text/javascript">
+          /*
+          * Page contents
+          * * CONTEXT VARIABLES
+          *       Context Variables get transfered into $.object
+          *       for use in the js template and js apps
+          *
+          * - Authors-
+          * Paul AR Rada
+          *
+          */
+
+          $(function(){
+
+          'use strict';
+
+
+          $.contextVar = {
+               toggle : '{{ toggle }}',
+	      doing_id : '{{ doing_id }}',
+          section_in_focus : '{{ section_in_focus }}'
+};
+
+          });
+
+        </script>
+
+	<script type="text/javascript"
+		src="{{ STATIC_URL }}javascripts/doing-ck.js"></script>
+
+
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <!--<script>
+                var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
+                (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+                g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+                s.parentNode.insertBefore(g,s)}(document,'script'));
+                </script>-->
+  </body>
+</html>
